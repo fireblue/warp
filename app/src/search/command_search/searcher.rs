@@ -65,6 +65,11 @@ pub enum CommandSearchItemAction {
 
     /// The user accepted the search item to translate the query to a command using Warp AI.
     TranslateUsingWarpAI,
+
+    /// The user accepted an SSH host search item. The contained alias is the
+    /// `Host` block alias from ssh_config; the receiver runs `ssh -F
+    /// ~/.warp/ssh_config -t <alias>` in a new tab.
+    ConnectSshHost(String),
 }
 
 #[cfg(test)]

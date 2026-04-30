@@ -15034,6 +15034,44 @@ impl Workspace {
 
                         active_input_handle.update(ctx, |input, ctx| input.input_enter(ctx));
                     }
+                    ConnectSshHost(alias) => {
+                        // Resolve the ssh config path; bail noisily if we can't
+                        // create ~/.warp/ since the connection would fail anyway.
+                        let config_path = match crate::ssh_manager::paths::ensure_warp_config() {
+                            Ok(p) => p,
+                            Err(err) => {
+                                log::warn!(
+                                    "ssh_manager: cannot prepare ~/.warp/ssh_config: {err:#}"
+                                );
+                                return;
+                            }
+                        };
+                        let cmd = format!(
+                            "ssh -F {} -t {}",
+                            config_path.display(),
+                            alias
+                        );
+
+                        // Spawn a new tab in the current window. The new
+                        // tab's shell isn't bootstrapped yet, so we use
+                        // `set_pending_command` instead of
+                        // `try_execute_command` — the former buffers the
+                        // command and runs it as soon as the shell is ready.
+                        self.add_new_session_tab_internal_with_default_session_mode_behavior(
+                            NewSessionSource::Tab,
+                            Some(ctx.window_id()),
+                            None,
+                            None,
+                            false,
+                            DefaultSessionModeBehavior::Ignore,
+                            ctx,
+                        );
+                        if let Some(new_input) = self.get_active_input_view_handle(ctx) {
+                            new_input.update(ctx, |input, ctx| {
+                                input.set_pending_command(cmd.as_str(), ctx);
+                            });
+                        }
+                    }
                 }
             }
             Resize => {

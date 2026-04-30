@@ -581,6 +581,7 @@ pub enum CommandSearchResultType {
     ViewInWarpDrive,
     AIQuery,
     Project,
+    SshHost,
 }
 
 impl From<&CommandSearchItemAction> for CommandSearchResultType {
@@ -594,6 +595,7 @@ impl From<&CommandSearchItemAction> for CommandSearchResultType {
             OpenWarpAI => Self::OpenWarpAI,
             TranslateUsingWarpAI => Self::TranslateUsingWarpAI,
             AcceptAIQuery(_) | RunAIQuery(_) => Self::AIQuery,
+            ConnectSshHost(_) => Self::SshHost,
         }
     }
 }

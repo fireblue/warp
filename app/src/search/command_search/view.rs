@@ -234,6 +234,15 @@ impl CommandSearchView {
             // Add data sources in lowest->highest priority order.  If results from two
             // data sources produce the same ranking score, the data source added first
             // will show up higher in the list (i.e.: further away from the input).
+
+            // SSH hosts: gated by `QueryFilter::Ssh` inside the source so it never
+            // pollutes the unfiltered Cmd+K palette. Filter is set when the user
+            // opens via Cmd+Shift+S.
+            mixer.add_sync_source(
+                crate::ssh_manager::data_source::SshHostsDataSource::new(),
+                HashSet::from([crate::search::QueryFilter::Ssh]),
+            );
+
             if AISettings::as_ref(ctx).is_any_ai_enabled(ctx) {
                 mixer.add_sync_source(
                     WarpAIDataSource::new(self.ai_client.clone(), None),
@@ -503,7 +512,7 @@ impl CommandSearchView {
         {
             use CommandSearchItemAction::*;
             let was_immediately_executed = match &result_action {
-                ExecuteHistory(_) | RunAIQuery(_) => true,
+                ExecuteHistory(_) | RunAIQuery(_) | ConnectSshHost(_) => true,
 
                 AcceptHistory(_)
                 | AcceptWorkflow(_)

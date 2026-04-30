@@ -219,6 +219,10 @@ pub enum QueryFilter {
 
     /// Include only conversations whose most recent directory matches the session's current working directory.
     CurrentDirectoryConversations,
+
+    /// Filter results for SSH hosts (from `~/.warp/ssh_config` and the user's
+    /// `~/.ssh/config` it `Include`s).
+    Ssh,
 }
 
 impl QueryFilter {
@@ -259,6 +263,7 @@ impl QueryFilter {
             QueryFilter::CurrentDirectoryConversations => {
                 "Search conversations in current directory"
             }
+            QueryFilter::Ssh => "Search SSH hosts",
         }
     }
 
@@ -291,6 +296,7 @@ impl QueryFilter {
             QueryFilter::BaseModels => &NO_FILTER_ATOM,
             QueryFilter::FullTerminalUseModels => &NO_FILTER_ATOM,
             QueryFilter::CurrentDirectoryConversations => &NO_FILTER_ATOM,
+            QueryFilter::Ssh => &NO_FILTER_ATOM,
         }
     }
 
@@ -323,6 +329,7 @@ impl QueryFilter {
             QueryFilter::BaseModels => "base models",
             QueryFilter::FullTerminalUseModels => "full terminal use models",
             QueryFilter::CurrentDirectoryConversations => "current directory conversations",
+            QueryFilter::Ssh => "SSH hosts",
         }
     }
 
@@ -363,6 +370,7 @@ impl QueryFilter {
             QueryFilter::BaseModels => None,
             QueryFilter::FullTerminalUseModels => None,
             QueryFilter::CurrentDirectoryConversations => None,
+            QueryFilter::Ssh => Some(Icon::Globe.into()),
         }
     }
 }

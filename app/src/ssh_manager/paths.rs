@@ -24,7 +24,9 @@ pub fn warp_config_path() -> Result<PathBuf> {
 }
 
 /// Path of `~/.ssh/config`. Existence is not guaranteed — the user may not
-/// have one yet.
+/// have one yet. Currently unused at the call sites but kept for the
+/// settings page (Phase 1C) which needs it to drive "Open in editor".
+#[allow(dead_code)]
 pub fn user_config_path() -> Result<PathBuf> {
     let home = dirs::home_dir().context("home directory not found")?;
     Ok(home.join(".ssh").join("config"))

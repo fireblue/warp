@@ -114,7 +114,8 @@ impl FilterChipRenderer for QueryFilter {
             | QueryFilter::Skills
             | QueryFilter::BaseModels
             | QueryFilter::FullTerminalUseModels
-            | QueryFilter::CurrentDirectoryConversations => appearance
+            | QueryFilter::CurrentDirectoryConversations
+            | QueryFilter::Ssh => appearance
                 .theme()
                 .main_text_color(appearance.theme().surface_2())
                 .into_solid(),

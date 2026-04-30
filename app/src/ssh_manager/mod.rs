@@ -10,6 +10,8 @@
 
 pub mod annotation_repo;
 pub mod connection;
+pub mod data_source;
 pub mod model;
 pub mod parser;
 pub mod paths;
+pub mod search_item;

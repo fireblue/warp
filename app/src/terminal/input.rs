@@ -1848,6 +1848,16 @@ pub fn init(app: &mut AppContext) {
         .with_context_predicate(id!("Input") & !id!("VoltronActive"))
         .with_custom_action(CustomAction::HistorySearch),
         EditableBinding::new(
+            "workspace:show_ssh_picker",
+            "SSH Connect",
+            WorkspaceAction::ShowCommandSearch(CommandSearchOptions {
+                filter: Some(QueryFilter::Ssh),
+                init_content: Default::default(),
+            }),
+        )
+        .with_context_predicate(id!("Input") & !id!("VoltronActive"))
+        .with_key_binding("shift-cmd-S"),
+        EditableBinding::new(
             OPEN_COMPLETIONS_KEYBINDING_NAME,
             "Open completions menu",
             InputAction::MaybeOpenCompletionSuggestions,
