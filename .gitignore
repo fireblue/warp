@@ -58,3 +58,5 @@ __pycache__/
 
 # Superpowers brainstorming companion local state
 .superpowers/
+/cargo-bundle
+/cargo-bundle.zip

@@ -1015,7 +1015,16 @@ impl TerminalManager {
         let is_crash_reporting_enabled = PrivacySettings::as_ref(ctx).is_crash_reporting_enabled;
 
         // The TMUX SSH wrapper supercedes the original ControlMaster wrapper.
-        let enable_ssh_wrapper = if FeatureFlag::SSHTmuxWrapper.is_enabled() {
+        // For the OSS / no-login build (`SkipFirebaseAnonymousUser`) the
+        // wrapper is unconditionally OFF: it relies on a remote helper that
+        // Warp downloads from its cloud, so without auth the install always
+        // fails (the visible symptom is `channel N: open failed` from sshd
+        // because the wrapper opens a reverse Unix-socket forward that has
+        // nowhere to point). Skipping the wrapper preserves a vanilla
+        // OpenSSH experience for the picker and for hand-typed `ssh ...`.
+        let enable_ssh_wrapper = if FeatureFlag::SkipFirebaseAnonymousUser.is_enabled() {
+            false
+        } else if FeatureFlag::SSHTmuxWrapper.is_enabled() {
             *WarpifySettings::as_ref(ctx)
                 .enable_ssh_warpification
                 .value()
