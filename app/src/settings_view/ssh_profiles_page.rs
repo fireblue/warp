@@ -44,6 +44,13 @@ pub enum SshProfilesAction {
     SaveAnnotation,
     /// Discard editor changes and collapse the row.
     CancelEdit,
+    /// Open `~/.warp/ssh_config` in the user's external editor so they can
+    /// add or modify Warp-managed Host blocks by hand. This is the MVP
+    /// add/edit path while a structured form is still on the to-do list.
+    OpenWarpConfigInEditor,
+    /// Open `~/.ssh/config` in the user's external editor. Used to edit
+    /// User-source hosts that Warp can't safely rewrite.
+    OpenUserConfigInEditor,
 }
 
 pub struct SshProfilesPageView {
@@ -122,6 +129,16 @@ impl TypedActionView for SshProfilesPageView {
             }
             SshProfilesAction::SaveAnnotation => self.save_edit(ctx),
             SshProfilesAction::CancelEdit => self.cancel_edit(ctx),
+            SshProfilesAction::OpenWarpConfigInEditor => {
+                if let Err(err) = open_in_editor(true, ctx) {
+                    log::warn!("ssh_profiles: open warp config failed: {err:#}");
+                }
+            }
+            SshProfilesAction::OpenUserConfigInEditor => {
+                if let Err(err) = open_in_editor(false, ctx) {
+                    log::warn!("ssh_profiles: open user config failed: {err:#}");
+                }
+            }
         }
     }
 }
@@ -174,6 +191,8 @@ struct SshProfilesWidget {
     cancel_button_state: MouseStateHandle,
     color_button_states: std::cell::RefCell<HashMap<ColorSlug, MouseStateHandle>>,
     clear_color_state: MouseStateHandle,
+    open_warp_config_state: MouseStateHandle,
+    open_user_config_state: MouseStateHandle,
 }
 
 impl SshProfilesWidget {
@@ -234,9 +253,57 @@ impl SettingsWidget for SshProfilesWidget {
         };
         let annotations = load_annotations();
 
+        // Top toolbar: open-in-editor buttons. The structured "+ Add new
+        // host" form is deferred — until then, the user edits ssh_config
+        // by hand and the picker re-parses on its next open.
+        let toolbar = Flex::row()
+            .with_cross_axis_alignment(CrossAxisAlignment::Center)
+            .with_main_axis_size(MainAxisSize::Min)
+            .with_child(
+                appearance
+                    .ui_builder()
+                    .button(ButtonVariant::Accent, self.open_warp_config_state.clone())
+                    .with_text_label("Edit ~/.warp/ssh_config".to_owned())
+                    .with_style(
+                        UiComponentStyles::default().set_padding(
+                            Coords::default().left(10.).right(10.).top(4.).bottom(4.),
+                        ),
+                    )
+                    .build()
+                    .on_click(move |ctx, _, _| {
+                        ctx.dispatch_typed_action(SshProfilesAction::OpenWarpConfigInEditor);
+                    })
+                    .finish(),
+            )
+            .with_child(
+                Container::new(
+                    appearance
+                        .ui_builder()
+                        .button(ButtonVariant::Text, self.open_user_config_state.clone())
+                        .with_text_label("Edit ~/.ssh/config".to_owned())
+                        .with_style(
+                            UiComponentStyles::default().set_padding(
+                                Coords::default().left(10.).right(10.).top(4.).bottom(4.),
+                            ),
+                        )
+                        .build()
+                        .on_click(move |ctx, _, _| {
+                            ctx.dispatch_typed_action(SshProfilesAction::OpenUserConfigInEditor);
+                        })
+                        .finish(),
+                )
+                .with_margin_left(8.)
+                .finish(),
+            );
+
         let mut column = Flex::column()
             .with_cross_axis_alignment(CrossAxisAlignment::Start)
             .with_main_axis_size(MainAxisSize::Min)
+            .with_child(
+                Container::new(toolbar.finish())
+                    .with_padding_bottom(12.)
+                    .finish(),
+            )
             .with_child(
                 Text::new_inline(
                     format!("{} host(s) discovered.", hosts.len()),
@@ -616,6 +683,21 @@ fn load_hosts() -> anyhow::Result<Vec<SshHost>> {
     let mut hosts = parser::parse_all(&path)?;
     hosts.sort_by(|a, b| a.alias.cmp(&b.alias));
     Ok(hosts)
+}
+
+/// Open one of the two ssh_config files in the user's external editor.
+/// `warp_owned = true` opens `~/.warp/ssh_config` (and creates it on first
+/// use); `false` opens `~/.ssh/config`. The user's editor preference is
+/// resolved by [`crate::util::file::external_editor`], with system-default
+/// fallback when no editor is configured.
+fn open_in_editor(warp_owned: bool, ctx: &mut warpui::AppContext) -> anyhow::Result<()> {
+    let path = if warp_owned {
+        paths::ensure_warp_config()?
+    } else {
+        paths::user_config_path()?
+    };
+    crate::util::file::external_editor::open_file_path_in_external_editor(None, path, ctx);
+    Ok(())
 }
 
 fn load_annotations() -> HashMap<String, HostAnnotation> {

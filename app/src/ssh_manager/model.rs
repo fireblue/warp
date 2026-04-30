@@ -6,6 +6,13 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 /// A connectable SSH host: ssh_config-derived fields + optional annotation.
+///
+/// Several fields beyond `alias`/`hostname`/`source` are populated by the
+/// parser but not yet read by the picker UI. They round-trip into the future
+/// add/edit form and are also useful for exposing extra context in tooltips
+/// and the Settings page; suppressing the dead-code warning until that
+/// surfaces.
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct SshHost {
     pub alias: String,

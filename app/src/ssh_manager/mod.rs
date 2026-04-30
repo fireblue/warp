@@ -9,7 +9,6 @@
 //! `docs/superpowers/specs/2026-04-30-ssh-manager-and-no-login-design.md`.
 
 pub mod annotation_repo;
-pub mod connection;
 pub mod data_source;
 pub mod model;
 pub mod parser;
