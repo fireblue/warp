@@ -355,6 +355,18 @@ diesel::table! {
 }
 
 diesel::table! {
+    ssh_host_annotations (alias) {
+        alias -> Text,
+        tags -> Text,
+        color -> Nullable<Text>,
+        notes -> Nullable<Text>,
+        last_connected_at -> Nullable<BigInt>,
+        created_at -> BigInt,
+        updated_at -> BigInt,
+    }
+}
+
+diesel::table! {
     tabs (id) {
         id -> Integer,
         window_id -> Integer,

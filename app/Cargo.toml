@@ -188,6 +188,7 @@ similar.workspace = true
 simple_logger.workspace = true
 smallvec.workspace = true
 smol_str.workspace = true
+ssh2-config.workspace = true
 static_assertions.workspace = true
 string-offset.workspace = true
 sum_tree.workspace = true

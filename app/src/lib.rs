@@ -74,6 +74,7 @@ mod search_bar;
 mod server;
 mod session_management;
 mod shell_indicator;
+mod ssh_manager;
 mod suggestions;
 mod system;
 mod tab;

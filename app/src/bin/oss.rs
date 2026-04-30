@@ -23,6 +23,9 @@ fn main() -> Result<()> {
             mcp_static_config: None,
         },
     );
+    state = state.with_additional_features(&[
+        warp_core::features::FeatureFlag::SkipFirebaseAnonymousUser,
+    ]);
     if cfg!(debug_assertions) {
         state = state.with_additional_features(warp_core::features::DEBUG_FLAGS);
     }
