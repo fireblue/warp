@@ -70,6 +70,11 @@ pub enum CommandSearchItemAction {
     /// `Host` block alias from ssh_config; the receiver runs `ssh -F
     /// ~/.warp/ssh_config -t <alias>` in a new tab.
     ConnectSshHost(String),
+
+    /// Same as [`Self::ConnectSshHost`], but the receiver opens a new window
+    /// instead of a new tab. Triggered by Shift+Enter (or Cmd+Enter on
+    /// macOS) on an SSH host row.
+    ConnectSshHostInWindow(String),
 }
 
 #[cfg(test)]

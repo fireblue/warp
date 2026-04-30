@@ -595,7 +595,7 @@ impl From<&CommandSearchItemAction> for CommandSearchResultType {
             OpenWarpAI => Self::OpenWarpAI,
             TranslateUsingWarpAI => Self::TranslateUsingWarpAI,
             AcceptAIQuery(_) | RunAIQuery(_) => Self::AIQuery,
-            ConnectSshHost(_) => Self::SshHost,
+            ConnectSshHost(_) | ConnectSshHostInWindow(_) => Self::SshHost,
         }
     }
 }

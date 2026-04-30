@@ -512,7 +512,10 @@ impl CommandSearchView {
         {
             use CommandSearchItemAction::*;
             let was_immediately_executed = match &result_action {
-                ExecuteHistory(_) | RunAIQuery(_) | ConnectSshHost(_) => true,
+                ExecuteHistory(_)
+                | RunAIQuery(_)
+                | ConnectSshHost(_)
+                | ConnectSshHostInWindow(_) => true,
 
                 AcceptHistory(_)
                 | AcceptWorkflow(_)

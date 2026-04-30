@@ -266,7 +266,9 @@ use crate::resource_center::{
     ResourceCenterEvent, ResourceCenterPage, ResourceCenterView, Tip, TipAction, TipsCompleted,
 };
 use crate::reward_view::{RewardEvent, RewardKind, RewardView};
-use crate::root_view::{quake_mode_window_id, NewWorkspaceSource, OpenLaunchConfigArg};
+use crate::root_view::{
+    open_new_with_workspace_source, quake_mode_window_id, NewWorkspaceSource, OpenLaunchConfigArg,
+};
 use crate::search::command_search::searcher::{
     AcceptedHistoryItem, AcceptedWorkflow, CommandSearchItemAction,
 };
@@ -15037,20 +15039,9 @@ impl Workspace {
                     ConnectSshHost(alias) => {
                         // Resolve the ssh config path; bail noisily if we can't
                         // create ~/.warp/ since the connection would fail anyway.
-                        let config_path = match crate::ssh_manager::paths::ensure_warp_config() {
-                            Ok(p) => p,
-                            Err(err) => {
-                                log::warn!(
-                                    "ssh_manager: cannot prepare ~/.warp/ssh_config: {err:#}"
-                                );
-                                return;
-                            }
+                        let Some(cmd) = build_ssh_command(&alias) else {
+                            return;
                         };
-                        let cmd = format!(
-                            "ssh -F {} -t {}",
-                            config_path.display(),
-                            alias
-                        );
 
                         // Spawn a new tab in the current window. The new
                         // tab's shell isn't bootstrapped yet, so we use
@@ -15069,6 +15060,36 @@ impl Workspace {
                         if let Some(new_input) = self.get_active_input_view_handle(ctx) {
                             new_input.update(ctx, |input, ctx| {
                                 input.set_pending_command(cmd.as_str(), ctx);
+                            });
+                        }
+                    }
+                    ConnectSshHostInWindow(alias) => {
+                        let Some(cmd) = build_ssh_command(&alias) else {
+                            return;
+                        };
+
+                        // Spawn a fresh window with a default session, then
+                        // queue the SSH command on its initial input view.
+                        // `set_pending_command` waits for the new shell to
+                        // bootstrap before running the command.
+                        let (window_id, _root_handle) = open_new_with_workspace_source(
+                            NewWorkspaceSource::Session {
+                                options: Box::default(),
+                            },
+                            ctx,
+                        );
+                        ctx.windows().show_window_and_focus_app(window_id);
+
+                        if let Some(workspace) = ctx
+                            .views_of_type::<Workspace>(window_id)
+                            .and_then(|workspaces| workspaces.into_iter().next())
+                        {
+                            workspace.update(ctx, |workspace, ctx| {
+                                if let Some(input) = workspace.get_active_input_view_handle(ctx) {
+                                    input.update(ctx, |input, ctx| {
+                                        input.set_pending_command(cmd.as_str(), ctx);
+                                    });
+                                }
                             });
                         }
                     }
@@ -23133,5 +23154,18 @@ fn set_opencode_warp_plugin(new_entry: &str) -> String {
             Err(e) => format!("Failed to write opencode.json: {e}"),
         },
         Err(e) => format!("Failed to serialize opencode.json: {e}"),
+    }
+}
+
+/// Build the `ssh -F ~/.warp/ssh_config -t <alias>` command for a given alias,
+/// ensuring `~/.warp/ssh_config` exists. Returns `None` (and logs a warning) if
+/// the config can't be prepared — connection would fail anyway.
+fn build_ssh_command(alias: &str) -> Option<String> {
+    match crate::ssh_manager::paths::ensure_warp_config() {
+        Ok(path) => Some(format!("ssh -F {} -t {}", path.display(), alias)),
+        Err(err) => {
+            log::warn!("ssh_manager: cannot prepare ~/.warp/ssh_config: {err:#}");
+            None
+        }
     }
 }
