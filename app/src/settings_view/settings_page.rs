@@ -19,6 +19,7 @@ use super::{
     privacy_page::PrivacyPageView,
     referrals_page::ReferralsPageView,
     show_blocks_view::ShowBlocksView,
+    ssh_profiles_page::SshProfilesPageView,
     teams_page::TeamsPageView,
     warp_drive_page::WarpDriveSettingsPageView,
     warpify_page::WarpifyPageView,
@@ -120,6 +121,7 @@ pub enum SettingsPageViewHandle {
     BillingAndUsage(ViewHandle<BillingAndUsagePageView>),
     MCPServers(ViewHandle<MCPServersSettingsPageView>),
     WarpDrive(ViewHandle<WarpDriveSettingsPageView>),
+    SshProfiles(ViewHandle<SshProfilesPageView>),
 }
 
 impl SettingsPageViewHandle {
@@ -143,6 +145,7 @@ impl SettingsPageViewHandle {
             BillingAndUsage(view_handle) => ChildView::new(view_handle).finish(),
             MCPServers(view_handle) => ChildView::new(view_handle).finish(),
             WarpDrive(view_handle) => ChildView::new(view_handle).finish(),
+            SshProfiles(view_handle) => ChildView::new(view_handle).finish(),
         }
     }
 }

@@ -15062,6 +15062,7 @@ impl Workspace {
                                 input.set_pending_command(cmd.as_str(), ctx);
                             });
                         }
+                        record_ssh_connection(&alias, ctx);
                     }
                     ConnectSshHostInWindow(alias) => {
                         let Some(cmd) = build_ssh_command(&alias) else {
@@ -15092,6 +15093,7 @@ impl Workspace {
                                 }
                             });
                         }
+                        record_ssh_connection(&alias, ctx);
                     }
                 }
             }
@@ -23167,5 +23169,18 @@ fn build_ssh_command(alias: &str) -> Option<String> {
             log::warn!("ssh_manager: cannot prepare ~/.warp/ssh_config: {err:#}");
             None
         }
+    }
+}
+
+/// Record the connection time for `alias` so the SSH picker can sort by recency.
+/// Fire-and-forget through the persistence writer; failures are logged but
+/// never block the connection itself.
+fn record_ssh_connection(alias: &str, ctx: &AppContext) {
+    use crate::persistence::{ModelEvent, PersistenceWriter};
+    let sender = PersistenceWriter::handle(ctx).as_ref(ctx).sender();
+    if let Some(sender) = sender {
+        let _ = sender.send(ModelEvent::SshConnectionRecorded {
+            alias: alias.to_owned(),
+        });
     }
 }

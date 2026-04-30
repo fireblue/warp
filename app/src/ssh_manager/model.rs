@@ -42,7 +42,7 @@ pub struct HostAnnotation {
 
 /// Fixed palette of colors users can assign to a host. Mapped to hex by the
 /// renderer.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ColorSlug {
     Red,

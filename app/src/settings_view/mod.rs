@@ -46,6 +46,7 @@ use settings_page::{
     HEADER_PADDING,
 };
 use show_blocks_view::{ShowBlocksEvent, ShowBlocksView};
+use ssh_profiles_page::SshProfilesPageView;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -101,6 +102,7 @@ mod referrals_page;
 mod settings_file_footer;
 pub(crate) mod settings_page;
 mod show_blocks_view;
+mod ssh_profiles_page;
 mod tab_menu;
 mod teams_page;
 mod telemetry;
@@ -197,6 +199,7 @@ pub enum SettingsSection {
     Privacy,
     Referrals,
     SharedBlocks,
+    SshProfiles,
     Teams,
     WarpDrive,
     Warpify,
@@ -233,6 +236,7 @@ impl Display for SettingsSection {
             SettingsSection::BillingAndUsage => write!(f, "Billing and usage"),
             SettingsSection::Keybindings => write!(f, "Keyboard shortcuts"),
             SettingsSection::SharedBlocks => write!(f, "Shared blocks"),
+            SettingsSection::SshProfiles => write!(f, "SSH profiles"),
             SettingsSection::MCPServers => write!(f, "MCP Servers"),
             SettingsSection::WarpDrive => write!(f, "Warp Drive"),
             SettingsSection::WarpAgent => write!(f, "Warp Agent"),
@@ -332,6 +336,7 @@ impl FromStr for SettingsSection {
             "Privacy" => Ok(Self::Privacy),
             "Referrals" => Ok(Self::Referrals),
             "Shared blocks" => Ok(Self::SharedBlocks),
+            "SSH profiles" | "SshProfiles" => Ok(Self::SshProfiles),
             "Teams" => Ok(Self::Teams),
             "Warpify" => Ok(Self::Warpify),
             "WarpDrive" | "Warp Drive" => Ok(Self::WarpDrive),
@@ -970,6 +975,7 @@ macro_rules! update_page {
             SettingsPageViewHandle::BillingAndUsage(handle) => $ctx.update_view(handle, $update),
             SettingsPageViewHandle::MCPServers(handle) => $ctx.update_view(handle, $update),
             SettingsPageViewHandle::WarpDrive(handle) => $ctx.update_view(handle, $update),
+            SettingsPageViewHandle::SshProfiles(handle) => $ctx.update_view(handle, $update),
         }
     };
 }
@@ -1129,6 +1135,8 @@ impl SettingsView {
             me.handle_mcp_servers_page_event(event, ctx);
         });
 
+        let ssh_profiles_page_handle = ctx.add_typed_action_view(SshProfilesPageView::new);
+
         let font_family = Appearance::as_ref(ctx).ui_font_family();
         let search_editor = ctx.add_typed_action_view(|ctx| {
             let options = SingleLineEditorOptions {
@@ -1177,6 +1185,7 @@ impl SettingsView {
             SettingsPage::new(mcp_servers_page_handle),
             SettingsPage::new(environments_page_handle.clone()),
             SettingsPage::new(privacy_page_handle),
+            SettingsPage::new(ssh_profiles_page_handle),
             SettingsPage::new(about_page_handle),
         ]);
 
@@ -1210,6 +1219,7 @@ impl SettingsView {
             SettingsNavItem::Page(SettingsSection::Warpify),
             SettingsNavItem::Page(SettingsSection::Referrals),
             SettingsNavItem::Page(SettingsSection::SharedBlocks),
+            SettingsNavItem::Page(SettingsSection::SshProfiles),
             SettingsNavItem::Page(SettingsSection::WarpDrive),
             SettingsNavItem::Page(SettingsSection::Privacy),
             SettingsNavItem::Page(SettingsSection::About),
@@ -1962,6 +1972,7 @@ impl SettingsView {
             SettingsPageViewHandle::MCPServers(v) => v.as_ref(app).should_render(app),
             SettingsPageViewHandle::Code(v) => v.as_ref(app).should_render(app),
             SettingsPageViewHandle::WarpDrive(v) => v.as_ref(app).should_render(app),
+            SettingsPageViewHandle::SshProfiles(v) => v.as_ref(app).should_render(app),
         }
     }
 

@@ -729,6 +729,22 @@ fn handle_model_event(event: ModelEvent, connection: &mut SqliteConnection) -> a
             title,
         } => save_ai_document_content(connection, &document_id, &content, version, &title)
             .context("error saving AI document content"),
+        ModelEvent::SshAnnotationUpsert { alias, annotation } => {
+            crate::ssh_manager::annotation_repo::upsert(connection, &alias, &annotation)
+                .map_err(anyhow::Error::from)
+                .context("error upserting ssh annotation")
+        }
+        ModelEvent::SshAnnotationDelete { alias } => {
+            crate::ssh_manager::annotation_repo::delete(connection, &alias)
+                .map(|_| ())
+                .map_err(anyhow::Error::from)
+                .context("error deleting ssh annotation")
+        }
+        ModelEvent::SshConnectionRecorded { alias } => {
+            crate::ssh_manager::annotation_repo::record_connection(connection, &alias)
+                .map_err(anyhow::Error::from)
+                .context("error recording ssh connection")
+        }
     }
 }
 

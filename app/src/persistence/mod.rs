@@ -385,4 +385,16 @@ pub enum ModelEvent {
         version: i32,
         title: String,
     },
+    /// Insert/replace the annotation row for an SSH host alias. The
+    /// `HostAnnotation` is opaque to the writer thread; the SSH manager owns
+    /// the data shape.
+    SshAnnotationUpsert {
+        alias: String,
+        annotation: crate::ssh_manager::model::HostAnnotation,
+    },
+    /// Delete the annotation row for an SSH host alias.
+    SshAnnotationDelete { alias: String },
+    /// Stamp `last_connected_at = now()` on an SSH host alias, inserting a
+    /// blank annotation row if needed.
+    SshConnectionRecorded { alias: String },
 }
